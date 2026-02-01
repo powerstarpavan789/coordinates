@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coordinate Conversion Tool</title>
+
+<style>
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg,#e3f2fd,#bbdefb);
+}
+
+.converter {
+  background:white;
+  padding:25px;
+  max-width:500px;
+  margin:40px auto;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+h1{text-align:center;color:#0d47a1;}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:6px;
+border:1px solid #90caf9;
+}
+
+button{
+background:#1976d2;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+.result{
+margin-top:20px;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Coordinate Conversion Tool</h1>
+
+<div class="converter">
+
+<label>Conversion Type</label>
+<select id="coordType">
+<option value="utmToDMS">UTM → DMS</option>
+<option value="dmsToUTM">DMS → UTM</option>
+</select>
+
+<div id="utmInputs">
+<label>Easting</label>
+<input type="number" id="utmEasting">
+
+<label>Northing</label>
+<input type="number" id="utmNorthing">
+
+<label>Zone</label>
+<input type="number" id="utmZone">
+
+<label>Hemisphere</label>
+<select id="utmHemisphere">
+<option value="N">North</option>
+<option value="S">South</option>
+</select>
+</div>
+
+<div id="dmsInputs" style="display:none;">
+<label>Latitude DMS</label>
+<input type="text" id="dmsLat">
+
+<label>Longitude DMS</label>
+<input type="text" id="dmsLon">
+</div>
+
+<button onclick="convertCoordinates()">Convert</button>
+
+<div class="result" id="coordResult"></div>
+
+</div>
+
+<script>
+const coordType=document.getElementById("coordType");
+
+coordType.addEventListener("change",()=>{
+utmInputs.style.display=coordType.value==="utmToDMS"?"block":"none";
+dmsInputs.style.display=coordType.value==="dmsToUTM"?"block":"none";
+});
+
+function dmsToDecimal(d){
+let p=d.match(/(\d+)[°:\s](\d+)[']?(\d+(?:\.\d+)?)?["]?\s*([NSEW])?/i);
+if(!p)return NaN;
+let dec=+p[1]+p[2]/60+(p[3]?+p[3]/3600:0);
+if(p[4]==='S'||p[4]==='W')dec=-dec;
+return dec;
+}
+
+function decimalToDMS(dec,isLat=true){
+const dir=isLat?(dec>=0?'N':'S'):(dec>=0?'E':'W');
+dec=Math.abs(dec);
+const d=Math.floor(dec);
+const m=Math.floor((dec-d)*60);
+const s=((dec-d-m/60)*3600).toFixed(2);
+return `${d}°${m}'${s}"${dir}`;
+}
+
+function convertCoordinates(){
+let type=coordType.value;
+
+if(type==="utmToDMS"){
+let e=+utmEasting.value;
+let n=+utmNorthing.value;
+let z=+utmZone.value;
+if(!e||!n||!z)return alert("Enter valid UTM");
+let lat=(n/111320);
+let lon=(e/111320);
+coordResult.innerText=`Lat ${decimalToDMS(lat)} , Lon ${decimalToDMS(lon,false)}`;
+}
+else{
+let lat=dmsToDecimal(dmsLat.value);
+let lon=dmsToDecimal(dmsLon.value);
+if(isNaN(lat)||isNaN(lon))return alert("Enter valid DMS");
+coordResult.innerText=`Decimal → Lat ${lat.toFixed(6)} , Lon ${lon.toFixed(6)}`;
+}
+}
+</script>
+
+</body>
+</html>
